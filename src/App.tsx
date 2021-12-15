@@ -261,7 +261,7 @@ function App() {
             onChange={(e : any)=> {
               setUserId(e.target.value);
             }}
-            style={{width :  500, height : 50, borderRadius : 5, border : '1px solid #ededed'}}
+            style={{width :  500, height : 50, borderRadius : 5, border : '1px solid #ededed', fontSize : 18}}
           />
         </div>
 
@@ -275,7 +275,7 @@ function App() {
             onChange={(e : any)=> {
               setPassword(e.target.value);
             }}
-            style={{width  :  500, height : 50, borderRadius : 5, border : '1px solid #ededed'}}
+            style={{width  :  500, height : 50, borderRadius : 5, border : '1px solid #ededed', fontSize : 18}}
           />
         </div>
 
