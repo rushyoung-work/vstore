@@ -7,25 +7,42 @@ function App() {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [region, setRegion] = useState("kr");
+
+  const [shopList, setShopList] = useState([])
+  const [shopBonusList, setShopBonusList] = useState([])
+  const [loding, setLoding] = useState(false);
+  const [reLoad, setRreload] = useState(false);
   
   const login = async () => {
 
-    
-    
+    setShopList([])
+    setLoding(true);
 
-    document.cookie = 'clid=; path=/; expires=-1; domain=riotgames.com' 
-    document.cookie = 'clid=; path=/; expires=-1; domain=.riotgames.com' 
-    document.cookie = 'clid=; path=/; expires=-1; domain=127.0.0.1' 
+    try {
+     
+      try {
+        try {
+          const a = await axios({ 
+            url: "/logout?",
+            method: "GET",
+            withCredentials: true,
+          });
+          
 
-    await document.cookie.split(";").forEach(function(c) { 
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-    });
-    //clearing local storage
-    await localStorage.clear();
-
+        } catch(e) {
+          const a = await axios({ 
+            url: "/logout?",
+            method: "GET",
+            withCredentials: true,
+          });
+          
+        }
+      } catch(e) {
+        
+      }
     
     let auth: any = await axios({ 
-      url: "https://auth.riotgames.com/api/v1/authorization",
+      url: "/authorization",
       method: "POST",
       data: {
         client_id: "play-valorant-web-prod",
@@ -34,18 +51,16 @@ function App() {
         response_type: "token id_token",
       },
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin" : '*'
+        "Content-Type": "application/json"
       },
       withCredentials: true,
     });
 
-    console.log({auth})
 
 
     let response: any = (
       await axios({
-        url: "https://auth.riotgames.com/api/v1/authorization",
+        url: "/authorization",
         method: "PUT",
         data: {
           type: "auth",
@@ -53,13 +68,13 @@ function App() {
           password,
         },
         headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin" : '*'
+          "Content-Type": "application/json"
         },
         withCredentials: true,
       })
     ).data;
 
+    
 
     if (response.error === "auth_failure")
     return {
@@ -81,7 +96,7 @@ function App() {
     const entitlementsToken = (
       (
         await axios({
-          url: "https://entitlements.auth.riotgames.com/api/token/v1",
+          url: "/v1",
           method: "POST",
           data: {},
           headers: {
@@ -89,14 +104,16 @@ function App() {
             Authorization: `Bearer ${accessToken}`,
           },
           withCredentials: true,
-        })
+        }) 
       ).data as any
     ).entitlements_token;
+
+    
 
     const userIds = (
       (
         await axios({
-          url: "https://auth.riotgames.com/userinfo",
+          url: "/userinfo",
           method: "POST",
           data: {},
           headers: {
@@ -119,15 +136,23 @@ function App() {
       loading: false,
     };
     await loadOffers(user);
-    console.log(await getShop(user))
+    
+    await getShop(user)
   
     return user;
+
+    } catch(e) {
+      
+    }
+    
+
+    
   }
 
   const getShop = async (user : any) => {
     const shop: any = (
       await axios({
-        url: `https://pd.${region}.a.pvp.net/store/v2/storefront/${user.id}`,
+        url: `/storefront/${user.id}`,
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -137,8 +162,10 @@ function App() {
         withCredentials: true,
       })
     ).data;
+
   
     var singleItems = shop.SkinsPanelLayout.SingleItemOffers;
+    var BonusItems = shop.BonusStore.BonusStoreOffers;
   
     for (var i = 0; i < singleItems.length; i++) {
       singleItems[i] = (
@@ -151,14 +178,35 @@ function App() {
       ).data;
       singleItems[i].price = offers[singleItems[i].uuid];
     }
-  
+
+    for (var i = 0; i < BonusItems.length; i++) {
+      let price = BonusItems[i].Offer.Cost["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"];
+      let DiscountPercent = BonusItems[i].DiscountPercent;
+      let DiscountPrice = BonusItems[i].DiscountCosts["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"];
+
+      BonusItems[i] = (
+        (
+          await axios({
+            url: `https://valorant-api.com/v1/weapons/skinlevels/${BonusItems[i].Offer.OfferID}`,
+            method: "GET",
+          })
+        ).data as any
+      ).data;
+      BonusItems[i].price = price
+      BonusItems[i].DiscountPercent = DiscountPercent
+      BonusItems[i].DiscountPrice = DiscountPrice
+    }
+    setShopList(singleItems);
+    setShopBonusList(BonusItems);
+    setRreload(!reLoad)
+    setLoding(false);
     return { singleItems } as any;
   }
 
   const loadOffers =  async (user : any) => {
     let response: any = (
       await axios({
-        url: `https://pd.${region}.a.pvp.net/store/v1/offers`,
+        url: `/store/v1/offers`,
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -185,7 +233,7 @@ function App() {
       </div>
       
 
-      <div style={{position : 'absolute', top : '20%', left : 0, width : '100%'}}>
+      <div style={{ width : '100%', marginTop : 100}}>
         <div>
           <span style={{display : 'block', fontWeight : 'bold'}}>
             아이디
@@ -213,12 +261,68 @@ function App() {
           />
         </div>
 
-        <div onClick={()=>{login()}} style={{width  :  320, marginTop : 50, borderRadius : 5, height : 50, backgroundColor : '#2e343b', textAlign : 'center', lineHeight : '50px'}}>
+        <div onClick={()=>{login()}} style={{width  :  320, marginTop : 50, borderRadius : 5, height : 50, backgroundColor : '#2e343b', textAlign : 'center', lineHeight : '50px', cursor : 'pointer'}}>
           <span style={{color : '#fff'}}>
             접속하기
           </span>
         </div>
       </div>
+
+      {loding && shopList.length === 0 && (
+        <span>
+          접속중.. 이 메세지가 10초안에 안없어지면 계정이 잘못된거라 다시 확인해보세요.
+        </span>
+      )}
+
+      {shopList.length !== 0 && (
+        <div style={{width : '100%', marginTop : 50, height : 620, flexDirection : 'row', display : 'flex', flexWrap : 'wrap'}}>
+          <span style={{fontSize : 22, fontWeight : 'bold', width : '100%', marginTop : 10, marginBottom : 10, display : 'block'}}>
+            오늘의 상점
+          </span>
+          {shopList.map((item : any )=> {
+            return (
+              <div style={{width: '40%', padding : 15, height:  250, marginBottom : 25, marginRight : 20, borderRadius : 30, border : '1px solid #bfbfbf'}}>
+                <img src={item.displayIcon} alt="" style={{width : '100%', height : 200, objectFit : 'cover'}}/>
+
+                <span style={{marginTop : 10, display : 'block'}}>
+                  이름 : {item.displayName}
+                </span>
+
+                <span style={{marginTop : 10}}>
+                  가격 : {item.price}vp 
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {shopBonusList.length !== 0 && (
+        <div style={{width : '100%', marginTop : 50,  flexDirection : 'row', display : 'flex', flexWrap : 'wrap'}}>
+          <span style={{fontSize : 22, fontWeight : 'bold', width : '100%', marginTop : 10, marginBottom : 10, display : 'block'}}>
+            야시장
+          </span>
+          {shopBonusList.map((item : any )=> {
+            return (
+              <div style={{width: '40%', padding : 15, marginBottom : 25, marginRight : 20, borderRadius : 30, border : '1px solid #bfbfbf'}}>
+                <img src={item.displayIcon} alt="" style={{width : '100%', height : 200, objectFit : 'cover'}}/>
+
+                <span style={{marginTop : 10, display : 'block'}}>
+                  이름 : {item.displayName}
+                </span>
+
+                
+                <span style={{marginTop : 7, width:  '100%', display : 'block'}}>
+                  할인전 가격 : {item.price}vp
+                </span>
+                <span style={{marginTop : 5, width:  '100%', display : 'block', fontWeight : 'bold', color : 'red'}}>
+                  할인후 가격 : {item.DiscountPrice}vp (-{item.DiscountPercent}%)
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
     </div>
   );
