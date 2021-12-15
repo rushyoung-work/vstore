@@ -23,17 +23,23 @@ function App() {
       try {
         try {
           const a = await axios({ 
-            url: "/logout?",
+            url: "http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://auth.riotgames.com/logout?",
             method: "GET",
-            withCredentials: true,
+            withCredentials: false,
+            headers :{
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
           });
           
 
         } catch(e) {
           const a = await axios({ 
-            url: "/logout?",
+            url: "http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://auth.riotgames.com/logout?",
             method: "GET",
-            withCredentials: true,
+            withCredentials: false,
+            headers :{
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
           });
           
         }
@@ -42,7 +48,7 @@ function App() {
       }
     
     let auth: any = await axios({ 
-      url: "/authorization",
+      url: "http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://auth.riotgames.com/api/v1/authorization",
       method: "POST",
       data: {
         client_id: "play-valorant-web-prod",
@@ -51,16 +57,17 @@ function App() {
         response_type: "token id_token",
       },
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        'X-Requested-With' : 'XMLHttpRequest'
       },
-      withCredentials: true,
+      withCredentials: false,
     });
 
 
 
     let response: any = (
       await axios({
-        url: "/authorization",
+        url: "http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://auth.riotgames.com/api/v1/authorization",
         method: "PUT",
         data: {
           type: "auth",
@@ -68,9 +75,10 @@ function App() {
           password,
         },
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'X-Requested-With' : 'XMLHttpRequest'
         },
-        withCredentials: true,
+        withCredentials: false,
       })
     ).data;
 
@@ -96,14 +104,15 @@ function App() {
     const entitlementsToken = (
       (
         await axios({
-          url: "/v1",
+          url: "http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://entitlements.auth.riotgames.com/api/token/v1",
           method: "POST",
           data: {},
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
+            'X-Requested-With' : 'XMLHttpRequest'
           },
-          withCredentials: true,
+          withCredentials: false,
         }) 
       ).data as any
     ).entitlements_token;
@@ -113,14 +122,15 @@ function App() {
     const userIds = (
       (
         await axios({
-          url: "/userinfo",
+          url: "http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://auth.riotgames.com/userinfo",
           method: "POST",
           data: {},
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
+            'X-Requested-With' : 'XMLHttpRequest'
           },
-          withCredentials: true,
+          withCredentials: false,
         })
       ).data as any
     ).sub;
@@ -152,14 +162,15 @@ function App() {
   const getShop = async (user : any) => {
     const shop: any = (
       await axios({
-        url: `/storefront/${user.id}`,
+        url: `http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://pd.kr.a.pvp.net/store/v2/storefront/${user.id}`,
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "X-Riot-Entitlements-JWT": user.entitlementsToken,
           Authorization: `Bearer ${user.accessToken}`,
+          'X-Requested-With' : 'XMLHttpRequest'
         },
-        withCredentials: true,
+        withCredentials: false,
       })
     ).data;
 
@@ -171,8 +182,11 @@ function App() {
       singleItems[i] = (
         (
           await axios({
-            url: `https://valorant-api.com/v1/weapons/skinlevels/${singleItems[i]}`,
+            url: `http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://valorant-api.com/v1/weapons/skinlevels/${singleItems[i]}`,
             method: "GET",
+            headers : {
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
           })
         ).data as any
       ).data;
@@ -187,8 +201,11 @@ function App() {
       BonusItems[i] = (
         (
           await axios({
-            url: `https://valorant-api.com/v1/weapons/skinlevels/${BonusItems[i].Offer.OfferID}`,
+            url: `http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://valorant-api.com/v1/weapons/skinlevels/${BonusItems[i].Offer.OfferID}`,
             method: "GET",
+            headers : {
+              'X-Requested-With' : 'XMLHttpRequest'
+            }
           })
         ).data as any
       ).data;
@@ -206,14 +223,15 @@ function App() {
   const loadOffers =  async (user : any) => {
     let response: any = (
       await axios({
-        url: `/store/v1/offers`,
+        url: `http://ec2-13-209-7-177.ap-northeast-2.compute.amazonaws.com:8080/https://pd.kr.a.pvp.net/store/v1/offers`,
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "X-Riot-Entitlements-JWT": user.entitlementsToken,
           Authorization: `Bearer ${user.accessToken}`,
+          'X-Requested-With' : 'XMLHttpRequest'
         },
-        withCredentials: true,
+        withCredentials: false,
       })
     ).data;
   
@@ -235,7 +253,7 @@ function App() {
 
       <div style={{ width : '100%', marginTop : 100}}>
         <div>
-          <span style={{display : 'block', fontWeight : 'bold'}}>
+          <span style={{display : 'block', fontWeight : 'bold', fontSize : 18}}>
             아이디
           </span>
           <input
@@ -243,12 +261,12 @@ function App() {
             onChange={(e : any)=> {
               setUserId(e.target.value);
             }}
-            style={{width :  320, height : 30, borderRadius : 5, border : '1px solid #ededed'}}
+            style={{width :  500, height : 50, borderRadius : 5, border : '1px solid #ededed'}}
           />
         </div>
 
         <div style={{marginTop : 30}}>
-          <span style={{display : 'block', fontWeight : 'bold'}}>
+          <span style={{display : 'block', fontWeight : 'bold', fontSize : 18}}>
             비밀번호
           </span>
           <input
@@ -257,12 +275,12 @@ function App() {
             onChange={(e : any)=> {
               setPassword(e.target.value);
             }}
-            style={{width  :  320, height : 30, borderRadius : 5, border : '1px solid #ededed'}}
+            style={{width  :  500, height : 50, borderRadius : 5, border : '1px solid #ededed'}}
           />
         </div>
 
-        <div onClick={()=>{login()}} style={{width  :  320, marginTop : 50, borderRadius : 5, height : 50, backgroundColor : '#2e343b', textAlign : 'center', lineHeight : '50px', cursor : 'pointer'}}>
-          <span style={{color : '#fff'}}>
+        <div onClick={()=>{login()}} style={{width  :  500, marginTop : 50, borderRadius : 5, height : 55, backgroundColor : '#2e343b', textAlign : 'center', lineHeight : '55px', cursor : 'pointer'}}>
+          <span style={{color : '#fff', fontSize : 18}}>
             접속하기
           </span>
         </div>
